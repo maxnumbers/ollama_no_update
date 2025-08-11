@@ -1,5 +1,5 @@
 import { spawn, ChildProcess } from 'child_process'
-import { app, autoUpdater, dialog, Tray, Menu, BrowserWindow, MenuItemConstructorOptions, nativeTheme } from 'electron'
+import { app, dialog, Tray, Menu, BrowserWindow, nativeTheme } from 'electron'
 import Store from 'electron-store'
 import winston from 'winston'
 import 'winston-daily-rotate-file'
@@ -85,16 +85,11 @@ function firstRunWindow() {
 }
 
 let tray: Tray | null = null
-let updateAvailable = false
 const assetPath = app.isPackaged ? process.resourcesPath : path.join(__dirname, '..', '..', 'assets')
 
 function trayIconPath() {
   return nativeTheme.shouldUseDarkColors
-    ? updateAvailable
-      ? path.join(assetPath, 'iconDarkUpdateTemplate.png')
-      : path.join(assetPath, 'iconDarkTemplate.png')
-    : updateAvailable
-    ? path.join(assetPath, 'iconUpdateTemplate.png')
+    ? path.join(assetPath, 'iconDarkTemplate.png')
     : path.join(assetPath, 'iconTemplate.png')
 }
 
@@ -105,17 +100,7 @@ function updateTrayIcon() {
 }
 
 function updateTray() {
-  const updateItems: MenuItemConstructorOptions[] = [
-    { label: 'An update is available', enabled: false },
-    {
-      label: 'Restart to update',
-      click: () => autoUpdater.quitAndInstall(),
-    },
-    { type: 'separator' },
-  ]
-
   const menu = Menu.buildFromTemplate([
-    ...(updateAvailable ? updateItems : []),
     { role: 'quit', label: 'Quit Ollama', accelerator: 'Command+Q' },
   ])
 
@@ -123,7 +108,7 @@ function updateTray() {
     tray = new Tray(trayIconPath())
   }
 
-  tray.setToolTip(updateAvailable ? 'An update is available' : 'Ollama')
+  tray.setToolTip('Ollama')
   tray.setContextMenu(menu)
   tray.setImage(trayIconPath())
 
@@ -162,59 +147,7 @@ app.on('before-quit', () => {
   }
 })
 
-const updateURL = `https://ollama.com/api/update?os=${process.platform}&arch=${
-  process.arch
-}&version=${app.getVersion()}&id=${id()}`
-
-let latest = ''
-async function isNewReleaseAvailable() {
-  try {
-    const response = await fetch(updateURL)
-
-    if (!response.ok) {
-      return false
-    }
-
-    if (response.status === 204) {
-      return false
-    }
-
-    const data = await response.json()
-
-    const url = data?.url
-    if (!url) {
-      return false
-    }
-
-    if (latest === url) {
-      return false
-    }
-
-    latest = url
-
-    return true
-  } catch (error) {
-    logger.error(`update check failed - ${error}`)
-    return false
-  }
-}
-
-async function checkUpdate() {
-  const available = await isNewReleaseAvailable()
-  if (available) {
-    logger.info('checking for update')
-    autoUpdater.checkForUpdates()
-  }
-}
-
 function init() {
-  if (app.isPackaged) {
-    checkUpdate()
-    setInterval(() => {
-      checkUpdate()
-    }, 60 * 60 * 1000)
-  }
-
   updateTray()
 
   if (process.platform === 'darwin') {
@@ -289,14 +222,3 @@ function id(): string {
   return uuid
 }
 
-autoUpdater.setFeedURL({ url: updateURL })
-
-autoUpdater.on('error', e => {
-  logger.error(`update check failed - ${e.message}`)
-  console.error(`update check failed - ${e.message}`)
-})
-
-autoUpdater.on('update-downloaded', () => {
-  updateAvailable = true
-  updateTray()
-})

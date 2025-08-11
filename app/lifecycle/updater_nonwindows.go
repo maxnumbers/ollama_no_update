@@ -8,5 +8,5 @@ import (
 )
 
 func DoUpgrade(cancel context.CancelFunc, done chan int) error {
-	return errors.New("not implemented")
+	return errors.New("updates disabled")
 }

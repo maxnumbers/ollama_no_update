@@ -27,7 +27,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ollama/ollama/auth"
 	"github.com/ollama/ollama/envconfig"
 	"github.com/ollama/ollama/format"
 	"github.com/ollama/ollama/version"
@@ -80,11 +79,7 @@ func NewClient(base *url.URL, http *http.Client) *Client {
 }
 
 func getAuthorizationToken(ctx context.Context, challenge string) (string, error) {
-	token, err := auth.Sign(ctx, []byte(challenge))
-	if err != nil {
-		return "", err
-	}
-	return token, nil
+	return "", errors.New("remote authentication disabled")
 }
 
 func (c *Client) do(ctx context.Context, method, path string, reqData, respData any) error {
@@ -114,13 +109,11 @@ func (c *Client) do(ctx context.Context, method, path string, reqData, respData 
 		now := strconv.FormatInt(time.Now().Unix(), 10)
 		chal := fmt.Sprintf("%s,%s?ts=%s", method, path, now)
 		token, err = getAuthorizationToken(ctx, chal)
-		if err != nil {
-			return err
+		if err == nil {
+			q := requestURL.Query()
+			q.Set("ts", now)
+			requestURL.RawQuery = q.Encode()
 		}
-
-		q := requestURL.Query()
-		q.Set("ts", now)
-		requestURL.RawQuery = q.Encode()
 	}
 
 	request, err := http.NewRequestWithContext(ctx, method, requestURL.String(), reqBody)

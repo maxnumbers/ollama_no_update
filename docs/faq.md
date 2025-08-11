@@ -79,7 +79,7 @@ If Ollama is run as a macOS application, environment variables should be set usi
 1. For each environment variable, call `launchctl setenv`.
 
     ```bash
-    launchctl setenv OLLAMA_HOST "0.0.0.0:11434"
+    launchctl setenv OLLAMA_KEEP_ALIVE "30m"
     ```
 
 2. Restart Ollama application.
@@ -94,7 +94,7 @@ If Ollama is run as a systemd service, environment variables should be set using
 
     ```ini
     [Service]
-    Environment="OLLAMA_HOST=0.0.0.0:11434"
+    Environment="OLLAMA_KEEP_ALIVE=30m"
     ```
 
 3. Save and exit.
@@ -116,7 +116,7 @@ On Windows, Ollama inherits your user and system environment variables.
 
 3. Click on _Edit environment variables for your account_.
 
-4. Edit or create a new variable for your user account for `OLLAMA_HOST`, `OLLAMA_MODELS`, etc.
+4. Edit or create a new variable for your user account for `OLLAMA_MODELS`, `OLLAMA_KEEP_ALIVE`, etc.
 
 5. Click OK/Apply to save.
 
@@ -153,58 +153,6 @@ docker run -d -e HTTPS_PROXY=https://my.proxy.example.com -p 11434:11434 ollama-
 ## Does Ollama send my prompts and responses back to ollama.com?
 
 If you're running a model locally, your prompts and responses will always stay on your machine. Ollama Turbo in the App allows you to run your queries on Ollama's servers if you don't have a powerful enough GPU. Web search lets a model query the web, giving you more accurate and up-to-date information. Both Turbo and web search require sending your prompts and responses to Ollama.com. This data is neither logged nor stored.
-
-If you don't want to see the Turbo and web search options in the app, you can disable them in Settings by turning on Airplane mode. In Airplane mode, all models will run locally, and your prompts and responses will stay on your machine.
-
-## How can I expose Ollama on my network?
-
-Ollama binds 127.0.0.1 port 11434 by default. Change the bind address with the `OLLAMA_HOST` environment variable.
-
-Refer to the section [above](#how-do-i-configure-ollama-server) for how to set environment variables on your platform.
-
-## How can I use Ollama with a proxy server?
-
-Ollama runs an HTTP server and can be exposed using a proxy server such as Nginx. To do so, configure the proxy to forward requests and optionally set required headers (if not exposing Ollama on the network). For example, with Nginx:
-
-```nginx
-server {
-    listen 80;
-    server_name example.com;  # Replace with your domain or IP
-    location / {
-        proxy_pass http://localhost:11434;
-        proxy_set_header Host localhost:11434;
-    }
-}
-```
-
-## How can I use Ollama with ngrok?
-
-Ollama can be accessed using a range of tools for tunneling tools. For example with Ngrok:
-
-```shell
-ngrok http 11434 --host-header="localhost:11434"
-```
-
-## How can I use Ollama with Cloudflare Tunnel?
-
-To use Ollama with Cloudflare Tunnel, use the `--url` and `--http-host-header` flags:
-
-```shell
-cloudflared tunnel --url http://localhost:11434 --http-host-header="localhost:11434"
-```
-
-## How can I allow additional web origins to access Ollama?
-
-Ollama allows cross-origin requests from `127.0.0.1` and `0.0.0.0` by default. Additional origins can be configured with `OLLAMA_ORIGINS`.
-
-For browser extensions, you'll need to explicitly allow the extension's origin pattern. Set `OLLAMA_ORIGINS` to include `chrome-extension://*`, `moz-extension://*`, and `safari-web-extension://*` if you wish to allow all browser extensions access, or specific extensions as needed:
-
-```
-# Allow all Chrome, Firefox, and Safari extensions
-OLLAMA_ORIGINS=chrome-extension://*,moz-extension://*,safari-web-extension://* ollama serve
-```
-
-Refer to the section [above](#how-do-i-configure-ollama-server) for how to set environment variables on your platform.
 
 ## Where are models stored?
 

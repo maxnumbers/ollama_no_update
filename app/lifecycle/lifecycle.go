@@ -40,11 +40,6 @@ func Run() {
 			case <-signals:
 				slog.Debug("shutting down due to signal")
 				t.Quit()
-			case <-callbacks.Update:
-				err := DoUpgrade(cancel, done)
-				if err != nil {
-					slog.Warn(fmt.Sprintf("upgrade attempt failed: %s", err))
-				}
 			case <-callbacks.ShowLogs:
 				ShowLogs()
 			case <-callbacks.DoFirstUse:
@@ -81,8 +76,6 @@ func Run() {
 			done <- 1
 		}
 	}
-
-	StartBackgroundUpdaterChecker(ctx, t.UpdateAvailable)
 
 	t.Run()
 	cancel()

@@ -725,7 +725,7 @@ func makeRequestWithRetry(ctx context.Context, method string, requestURL *url.UR
 			challenge := parseRegistryChallenge(resp.Header.Get("www-authenticate"))
 			token, err := getAuthorizationToken(ctx, challenge)
 			if err != nil {
-				return nil, err
+				return nil, errUnauthorized
 			}
 			regOpts.Token = token
 			if body != nil {

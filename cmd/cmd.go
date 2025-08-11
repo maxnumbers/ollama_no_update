@@ -1590,7 +1590,7 @@ func NewCLI() *cobra.Command {
 
 	envVars := envconfig.AsMap()
 
-	envs := []envconfig.EnvVar{envVars["OLLAMA_HOST"]}
+	envs := []envconfig.EnvVar{}
 
 	for _, cmd := range []*cobra.Command{
 		createCmd,
@@ -1607,11 +1607,10 @@ func NewCLI() *cobra.Command {
 	} {
 		switch cmd {
 		case runCmd:
-			appendEnvDocs(cmd, []envconfig.EnvVar{envVars["OLLAMA_HOST"], envVars["OLLAMA_NOHISTORY"]})
+			appendEnvDocs(cmd, []envconfig.EnvVar{envVars["OLLAMA_NOHISTORY"]})
 		case serveCmd:
 			appendEnvDocs(cmd, []envconfig.EnvVar{
 				envVars["OLLAMA_DEBUG"],
-				envVars["OLLAMA_HOST"],
 				envVars["OLLAMA_KEEP_ALIVE"],
 				envVars["OLLAMA_MAX_LOADED_MODELS"],
 				envVars["OLLAMA_MAX_QUEUE"],

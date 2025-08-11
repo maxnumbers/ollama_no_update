@@ -14,42 +14,11 @@ import (
 	"time"
 )
 
-// Host returns the scheme and host. Host can be configured via the OLLAMA_HOST environment variable.
-// Default is scheme "http" and host "127.0.0.1:11434"
+// Host returns the local scheme and host.
 func Host() *url.URL {
-	defaultPort := "11434"
-
-	s := strings.TrimSpace(Var("OLLAMA_HOST"))
-	scheme, hostport, ok := strings.Cut(s, "://")
-	switch {
-	case !ok:
-		scheme, hostport = "http", s
-	case scheme == "http":
-		defaultPort = "80"
-	case scheme == "https":
-		defaultPort = "443"
-	}
-
-	hostport, path, _ := strings.Cut(hostport, "/")
-	host, port, err := net.SplitHostPort(hostport)
-	if err != nil {
-		host, port = "127.0.0.1", defaultPort
-		if ip := net.ParseIP(strings.Trim(hostport, "[]")); ip != nil {
-			host = ip.String()
-		} else if hostport != "" {
-			host = hostport
-		}
-	}
-
-	if n, err := strconv.ParseInt(port, 10, 32); err != nil || n > 65535 || n < 0 {
-		slog.Warn("invalid port, using default", "port", port, "default", defaultPort)
-		port = defaultPort
-	}
-
 	return &url.URL{
-		Scheme: scheme,
-		Host:   net.JoinHostPort(host, port),
-		Path:   path,
+		Scheme: "http",
+		Host:   net.JoinHostPort("127.0.0.1", "11434"),
 	}
 }
 
@@ -59,7 +28,7 @@ func AllowedOrigins() (origins []string) {
 		origins = strings.Split(s, ",")
 	}
 
-	for _, origin := range []string{"localhost", "127.0.0.1", "0.0.0.0"} {
+	for _, origin := range []string{"localhost", "127.0.0.1"} {
 		origins = append(origins,
 			fmt.Sprintf("http://%s", origin),
 			fmt.Sprintf("https://%s", origin),
@@ -183,8 +152,8 @@ var (
 	NewEngine = Bool("OLLAMA_NEW_ENGINE")
 	// ContextLength sets the default context length
 	ContextLength = Uint("OLLAMA_CONTEXT_LENGTH", 4096)
-	// Auth enables authentication between the Ollama client and server
-	UseAuth = Bool("OLLAMA_AUTH")
+	// Auth is disabled in this build
+	UseAuth = func() bool { return false }
 )
 
 func String(s string) func() string {
@@ -255,7 +224,6 @@ func AsMap() map[string]EnvVar {
 		"OLLAMA_FLASH_ATTENTION":   {"OLLAMA_FLASH_ATTENTION", FlashAttention(), "Enabled flash attention"},
 		"OLLAMA_KV_CACHE_TYPE":     {"OLLAMA_KV_CACHE_TYPE", KvCacheType(), "Quantization type for the K/V cache (default: f16)"},
 		"OLLAMA_GPU_OVERHEAD":      {"OLLAMA_GPU_OVERHEAD", GpuOverhead(), "Reserve a portion of VRAM per GPU (bytes)"},
-		"OLLAMA_HOST":              {"OLLAMA_HOST", Host(), "IP Address for the ollama server (default 127.0.0.1:11434)"},
 		"OLLAMA_KEEP_ALIVE":        {"OLLAMA_KEEP_ALIVE", KeepAlive(), "The duration that models stay loaded in memory (default \"5m\")"},
 		"OLLAMA_LLM_LIBRARY":       {"OLLAMA_LLM_LIBRARY", LLMLibrary(), "Set LLM library to bypass autodetection"},
 		"OLLAMA_LOAD_TIMEOUT":      {"OLLAMA_LOAD_TIMEOUT", LoadTimeout(), "How long to allow model loads to stall before giving up (default \"5m\")"},

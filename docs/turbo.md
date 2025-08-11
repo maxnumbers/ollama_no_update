@@ -35,16 +35,10 @@ Download Ollama
   type "%USERPROFILE%\.ollama\id_ed25519.pub"
   ```
 
-- Then run a model setting `OLLAMA_HOST` to `ollama.com`:
-  ```shell
-  OLLAMA_HOST=ollama.com ollama run gpt-oss:120b
-  ```
 
 ### Ollama’s Python library
 
 - Download Ollama's [Python library](https://github.com/ollama/ollama-python)
-- [Sign up](https://ollama.com/signup) for an Ollama account
-- Create an API key by visiting https://ollama.com/settings/keys
 
 ```python
 from ollama import Client

@@ -281,7 +281,7 @@ func (b *blobUpload) uploadPart(ctx context.Context, method string, requestURL *
 		challenge := parseRegistryChallenge(resp.Header.Get("www-authenticate"))
 		token, err := getAuthorizationToken(ctx, challenge)
 		if err != nil {
-			return err
+			return errors.New("unauthorized: access denied")
 		}
 
 		opts.Token = token
